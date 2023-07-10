@@ -144,7 +144,7 @@ namespace api.Controllers
                 {
                     From = new MailAddress("chiraglabha05@gmail.com"),
                     Subject = "Forgot-password",
-                    Body = $"reset link is `http://localhost:4200/update-password/{token}",
+                    Body = $"reset link is `http://localhost:4200/user/update-password/{token}",
                     IsBodyHtml = true
                 };
                 message.To.Add(email);
