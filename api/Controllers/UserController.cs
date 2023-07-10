@@ -161,9 +161,17 @@ namespace api.Controllers
 
         public async Task<ActionResult<User>> UpdatePassword(string password, string token) 
         {
-            Console.WriteLine("Hello");
-            Console.WriteLine(token);
-            Console.WriteLine(password);
+            var user = await _context.User.FirstOrDefaultAsync(u => u.resetToken == token);
+
+            if(user == null) 
+            {
+                return BadRequest("User not found");
+            } 
+            else
+            {
+                user.Password = password;
+                await _context.SaveChangesAsync();
+            }
 
             return Ok();
         }
