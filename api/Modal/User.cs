@@ -16,6 +16,8 @@
         
         public int ContactDetails { get; set; }
 
+        public string resetToken { get; set; }
+
         public ICollection<ResearchBook> ResearchBooks { get; set; }
 
         public ICollection<ChatInteraction> ChatInteraction { get; set; }

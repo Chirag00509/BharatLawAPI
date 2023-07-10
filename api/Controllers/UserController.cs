@@ -9,6 +9,8 @@ using api.Data;
 using api.Modal;
 using System.Net.Mail;
 using System.Net;
+using System.Security.Cryptography;
+using Azure.Core;
 
 namespace api.Controllers
 {
@@ -121,9 +123,14 @@ namespace api.Controllers
         [HttpPost("/forgot")] 
         public async Task<ActionResult<User>> ForgotPassword(string email) 
         {
-            Console.WriteLine("Hello");
-            Console.WriteLine(email);
-            if (email != null)
+            var user = await _context.User.FirstOrDefaultAsync(u => u.Email == email);
+
+            string token = CreateRandomToken();
+            if (user == null)
+            {
+                return BadRequest("User not found.");
+            } 
+            else
             {
                 var smtpClient = new SmtpClient("smtp.gmail.com")
                 {
@@ -137,52 +144,34 @@ namespace api.Controllers
                 {
                     From = new MailAddress("chiraglabha05@gmail.com"),
                     Subject = "Forgot-password",
-                    Body = "reset link is http://localhost:4200/update-password",
+                    Body = $"reset link is `http://localhost:4200/update-password/{token}",
                     IsBodyHtml = true
                 };
                 message.To.Add(email);
 
                 // Send the email
                 smtpClient.Send(message);
+                user.resetToken = token;
+                await _context.SaveChangesAsync();
             }
             return Ok();
         }
 
-        //[HttpGet("/email")]
-        //public IActionResult Email(string email, string Body)
-        //{
-        //    string recipient = email;
-        //    string subject = "Task";
-        //    string body = Body;
+        [HttpPost("update-password")]
 
-        //    SendEmail(recipient, subject, body);
+        public async Task<ActionResult<User>> UpdatePassword(string password, string token) 
+        {
+            Console.WriteLine("Hello");
+            Console.WriteLine(token);
+            Console.WriteLine(password);
 
-        //    return Ok();
-        //}
+            return Ok();
+        }
 
-        //[HttpPost("")]
-        //public void SendEmail(string recipient, string subject, string body)
-        //{
-        //    var smtpClient = new SmtpClient("smtp.gmail.com")
-        //    {
-        //        Host = "smtp.gmail.com",
-        //        Port = 587,
-        //        EnableSsl = true,
-        //        Credentials = new NetworkCredential("chiraglabha05@gmail.com", "xmbmrinlzcavyppt")
-        //    };
-
-        //    var message = new MailMessage
-        //    {
-        //        From = new MailAddress("chiraglabha05@gmail.com"),
-        //        Subject = subject,
-        //        Body = body,
-        //        IsBodyHtml = true
-        //    };
-        //    message.To.Add(recipient);
-
-        //    // Send the email
-        //    smtpClient.Send(message);
-        //}
+        private string CreateRandomToken()
+        {
+            return Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
+        }
 
         private bool UserExists(int id)
         {
