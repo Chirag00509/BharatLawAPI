@@ -33,7 +33,25 @@ namespace api.Controllers
           {
               return NotFound();
           }
+
             return await _context.User.ToListAsync();
+        }
+
+        [HttpPost("login")]
+        public async Task<ActionResult<User>> login(string email, string password) 
+        {
+            var user =  await _context.User.FirstOrDefaultAsync(u => u.Email == email && u.Password == password);
+
+           if (user == null)
+           {
+               return NotFound();
+           }
+
+            string token = CreateRandomToken();
+            user.actionToken = token;
+            await _context.SaveChangesAsync();
+
+            return Ok(user);
         }
 
         // GET: api/User/5
@@ -56,34 +74,41 @@ namespace api.Controllers
 
         // PUT: api/User/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutUser(int id, User user)
-        {
-            if (id != user.Id)
-            {
-                return BadRequest();
-            }
+        //[HttpPut("{id}")]
+        //public async Task<IActionResult> PutUser(int id, User user)
+        //{   var user1 = _context.User.FirstOrDefault(u => u.Id == id); 
 
-            _context.Entry(user).State = EntityState.Modified;
+        //    if (id != user.Id)
+        //    {
+        //        return BadRequest();
+        //    }
+           
+        //    user1.FirstName = user.FirstName;
+        //    user1.LastName = user.LastName;
+        //    user1.Organization = user.Organization;
+        //    user1.ContactDetails = user.ContactDetails;
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!UserExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+        //    // _context.Entry(user).State = EntityState.Modified;
+        //    await _context.User.AddAsync(user1);
 
-            return NoContent();
-        }
+        //    try
+        //    {
+        //        await _context.SaveChangesAsync();
+        //    }
+        //    catch (DbUpdateConcurrencyException)
+        //    {
+        //        if (!UserExists(id))
+        //        {
+        //            return NotFound();
+        //        }
+        //        else
+        //        {
+        //            throw;
+        //        }
+        //    }
+
+        //    return NoContent();
+        //}
 
         // POST: api/User
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
@@ -99,6 +124,32 @@ namespace api.Controllers
 
             return CreatedAtAction("GetUser", new { id = user.Id }, user);
         }
+
+        [HttpGet("token")]
+
+        public async Task<ActionResult<IEnumerable<User>>> GetUserByToken(string token)
+        {
+            var users = await _context.User.FirstOrDefaultAsync(u => u.actionToken == token);
+            return Ok(users);
+        }
+
+        //[HttpPut("Update-profile/{token}")]
+        //public async Task<ActionResult<User>> UpdateProfile(string token, User user)
+        //{
+        //    var users =  await _context.User.FirstOrDefaultAsync(u => u.actionToken == token);
+
+        //    Console.WriteLine(users);
+
+        //    if (users == null)
+        //    {
+        //        return BadRequest();
+        //    }
+        //    _context.Entry(user).State = EntityState.Modified;
+
+        //    await _context.SaveChangesAsync();
+
+        //    return NoContent();
+        //}
 
         // DELETE: api/User/5
         [HttpDelete("{id}")]
@@ -158,7 +209,6 @@ namespace api.Controllers
         }
 
         [HttpPost("update-password")]
-
         public async Task<ActionResult<User>> UpdatePassword(string password, string token) 
         {
             var user = await _context.User.FirstOrDefaultAsync(u => u.resetToken == token);
