@@ -170,6 +170,7 @@ namespace api.Controllers
             else
             {
                 user.Password = password;
+                user.resetToken = null;
                 await _context.SaveChangesAsync();
             }
 
