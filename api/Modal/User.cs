@@ -15,7 +15,6 @@
         public string Organization { get; set; }
         
         public string ContactDetails { get; set; }
-
         public string? resetToken { get; set; }
         public string? actionToken { get; set; }
 

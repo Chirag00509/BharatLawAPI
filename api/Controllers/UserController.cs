@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using api.Data;
 using api.Modal;
@@ -11,6 +6,11 @@ using System.Net.Mail;
 using System.Net;
 using System.Security.Cryptography;
 using Azure.Core;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
 namespace api.Controllers
 {
@@ -54,6 +54,37 @@ namespace api.Controllers
             return Ok(user);
         }
 
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutUser(int id, User user)
+        {
+            Console.WriteLine(id);
+            Console.WriteLine(user.Id);
+            if (id != user.Id)
+            {
+                return BadRequest();
+            }
+
+            _context.Entry(user).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!UserExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
+        }
+
         // GET: api/User/5
         [HttpGet("{id}")]
         public async Task<ActionResult<User>> GetUser(int id)
@@ -72,49 +103,13 @@ namespace api.Controllers
             return user;
         }
 
-        // PUT: api/User/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        //[HttpPut("{id}")]
-        //public async Task<IActionResult> PutUser(int id, User user)
-        //{   var user1 = _context.User.FirstOrDefault(u => u.Id == id); 
-
-        //    if (id != user.Id)
-        //    {
-        //        return BadRequest();
-        //    }
-           
-        //    user1.FirstName = user.FirstName;
-        //    user1.LastName = user.LastName;
-        //    user1.Organization = user.Organization;
-        //    user1.ContactDetails = user.ContactDetails;
-
-        //    // _context.Entry(user).State = EntityState.Modified;
-        //    await _context.User.AddAsync(user1);
-
-        //    try
-        //    {
-        //        await _context.SaveChangesAsync();
-        //    }
-        //    catch (DbUpdateConcurrencyException)
-        //    {
-        //        if (!UserExists(id))
-        //        {
-        //            return NotFound();
-        //        }
-        //        else
-        //        {
-        //            throw;
-        //        }
-        //    }
-
-        //    return NoContent();
-        //}
-
         // POST: api/User
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         public async Task<ActionResult<User>> PostUser(User user)
         {
+            Console.WriteLine(user.FirstName);
+            Console.WriteLine(user.ContactDetails);
           if (_context.User == null)
           {
               return Problem("Entity set 'LegalGenContext.User'  is null.");
@@ -132,24 +127,6 @@ namespace api.Controllers
             var users = await _context.User.FirstOrDefaultAsync(u => u.actionToken == token);
             return Ok(users);
         }
-
-        //[HttpPut("Update-profile/{token}")]
-        //public async Task<ActionResult<User>> UpdateProfile(string token, User user)
-        //{
-        //    var users =  await _context.User.FirstOrDefaultAsync(u => u.actionToken == token);
-
-        //    Console.WriteLine(users);
-
-        //    if (users == null)
-        //    {
-        //        return BadRequest();
-        //    }
-        //    _context.Entry(user).State = EntityState.Modified;
-
-        //    await _context.SaveChangesAsync();
-
-        //    return NoContent();
-        //}
 
         // DELETE: api/User/5
         [HttpDelete("{id}")]
