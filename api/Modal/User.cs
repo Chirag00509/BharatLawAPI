@@ -14,15 +14,16 @@
 
         public string Organization { get; set; }
         
-        public int ContactDetails { get; set; }
+        public string ContactDetails { get; set; }
+        public string? resetToken { get; set; }
+        public string? actionToken { get; set; }
 
-        public string resetToken { get; set; }
 
-        public ICollection<ResearchBook> ResearchBooks { get; set; }
+        public ICollection<ResearchBook>? ResearchBooks { get; set; }
 
-        public ICollection<ChatInteraction> ChatInteraction { get; set; }
+        public ICollection<ChatInteraction>? ChatInteraction { get; set; }
 
-        public ICollection<SearchQuery> SearchQuery { get; set; }
+        public ICollection<SearchQuery>? SearchQuery { get; set; }
 
     }
 }

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using api.Data;
 using api.Modal;
@@ -11,6 +6,11 @@ using System.Net.Mail;
 using System.Net;
 using System.Security.Cryptography;
 using Azure.Core;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
 namespace api.Controllers
 {
@@ -33,32 +33,32 @@ namespace api.Controllers
           {
               return NotFound();
           }
+
             return await _context.User.ToListAsync();
         }
 
-        // GET: api/User/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<User>> GetUser(int id)
+        [HttpPost("login")]
+        public async Task<ActionResult<User>> login(string email, string password) 
         {
-          if (_context.User == null)
-          {
-              return NotFound();
-          }
-            var user = await _context.User.FindAsync(id);
+            var user =  await _context.User.FirstOrDefaultAsync(u => u.Email == email && u.Password == password);
 
-            if (user == null)
-            {
-                return NotFound();
-            }
+           if (user == null)
+           {
+               return NotFound();
+           }
 
-            return user;
+            string token = CreateRandomToken();
+            user.actionToken = token;
+            await _context.SaveChangesAsync();
+
+            return Ok(user);
         }
 
-        // PUT: api/User/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
         public async Task<IActionResult> PutUser(int id, User user)
         {
+            Console.WriteLine(id);
+            Console.WriteLine(user.Id);
             if (id != user.Id)
             {
                 return BadRequest();
@@ -85,11 +85,31 @@ namespace api.Controllers
             return NoContent();
         }
 
+        // GET: api/User/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<User>> GetUser(int id)
+        {
+          if (_context.User == null)
+          {
+              return NotFound();
+          }
+            var user = await _context.User.FindAsync(id);
+
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            return user;
+        }
+
         // POST: api/User
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         public async Task<ActionResult<User>> PostUser(User user)
         {
+            Console.WriteLine(user.FirstName);
+            Console.WriteLine(user.ContactDetails);
           if (_context.User == null)
           {
               return Problem("Entity set 'LegalGenContext.User'  is null.");
@@ -98,6 +118,14 @@ namespace api.Controllers
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetUser", new { id = user.Id }, user);
+        }
+
+        [HttpGet("token")]
+
+        public async Task<ActionResult<IEnumerable<User>>> GetUserByToken(string token)
+        {
+            var users = await _context.User.FirstOrDefaultAsync(u => u.actionToken == token);
+            return Ok(users);
         }
 
         // DELETE: api/User/5
@@ -158,7 +186,6 @@ namespace api.Controllers
         }
 
         [HttpPost("update-password")]
-
         public async Task<ActionResult<User>> UpdatePassword(string password, string token) 
         {
             var user = await _context.User.FirstOrDefaultAsync(u => u.resetToken == token);
