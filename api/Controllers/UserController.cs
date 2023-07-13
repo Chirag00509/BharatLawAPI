@@ -185,6 +185,27 @@ namespace api.Controllers
             return Ok();
         }
 
+         [HttpPost("change-password")]
+        public async Task<ActionResult<User>> ChangePassword(string token, string password, string newPassword)
+        {
+           var user = await _context.User.FirstOrDefaultAsync(u => u.actionToken == token);
+            
+            if(user == null) 
+            {
+                return BadRequest();
+            }
+
+            if (user.Password != password)
+            {
+                return BadRequest();
+            }
+
+            user.Password = newPassword;
+            await _context.SaveChangesAsync();
+
+            return Ok();
+        }
+
         [HttpPost("update-password")]
         public async Task<ActionResult<User>> UpdatePassword(string password, string token) 
         {
