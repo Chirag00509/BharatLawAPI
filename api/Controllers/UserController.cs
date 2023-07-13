@@ -172,7 +172,7 @@ namespace api.Controllers
                 {
                     From = new MailAddress("chiraglabha05@gmail.com"),
                     Subject = "Forgot-password",
-                    Body = $"reset link is `http://localhost:4200/user/update-password/{token}",
+                    Body = $"Hello, {user.FirstName} {user.LastName}.\nreset link is http://localhost:4200/user/update-password/{token}.\nThank you",
                     IsBodyHtml = true
                 };
                 message.To.Add(email);
@@ -201,6 +201,23 @@ namespace api.Controllers
             }
 
             user.Password = newPassword;
+            await _context.SaveChangesAsync();
+
+            return Ok();
+        }
+
+        [HttpGet("logut")]
+
+        public async Task<ActionResult<User>> logout(string token)
+        {
+            var user = await _context.User.FirstOrDefaultAsync(u => u.actionToken == token);
+
+            if(user == null)
+            {
+                return BadRequest();
+            }
+
+            user.actionToken = null;
             await _context.SaveChangesAsync();
 
             return Ok();
