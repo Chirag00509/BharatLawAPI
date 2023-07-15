@@ -32,23 +32,36 @@ namespace api.Controllers
             return await _context.ResearchBook.ToListAsync();
         }
 
-        // GET: api/ResearchBook/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<ResearchBook>> GetResearchBook(int id)
+        public async Task<ActionResult<IEnumerable<ResearchBook>>> GetResearchBookByToken(int id)
         {
-          if (_context.ResearchBook == null)
-          {
-              return NotFound();
-          }
-            var researchBook = await _context.ResearchBook.FindAsync(id);
+           var book = await _context.ResearchBook.Where(u => u.UserId == id).ToListAsync();
 
-            if (researchBook == null)
+            if (book == null) 
             {
                 return NotFound();
             }
 
-            return researchBook;
+            return book;
         }
+
+        //// GET: api/ResearchBook/5
+        //[HttpGet("{id}")]
+        //public async Task<ActionResult<ResearchBook>> GetResearchBook(int id)
+        //{
+        //  if (_context.ResearchBook == null)
+        //  {
+        //      return NotFound();
+        //  }
+        //    var researchBook = await _context.ResearchBook.FindAsync(id);
+
+        //    if (researchBook == null)
+        //    {
+        //        return NotFound();
+        //    }
+
+        //    return researchBook;
+        //}
 
         // PUT: api/ResearchBook/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
